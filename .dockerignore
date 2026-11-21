@@ -1,0 +1,13 @@
+**
+!pyproject.toml
+!uv.lock
+!Dockerfile
+!skills_mcp/
+!skills_mcp/**
+!skills/
+!skills/**
+**/.*
+**/__pycache__
+**/*.py[cod]
+**/*.pem
+**/*.key
