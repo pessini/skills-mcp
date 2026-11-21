@@ -1,14 +1,65 @@
 # skills-mcp
 
-Share your own skills with Codex, Claude Code, or another MCP client. The Python
-server reads skills from this repository and serves them over Streamable HTTP.
-Each deployment has its own catalog, URL, and bearer token. It needs one
-container and no database.
+Use this template to run your own Python server for sharing skills with Codex,
+Claude Code, or another Model Context Protocol (MCP) client. The server reads
+skills from your copy of the repository and serves them over Streamable HTTP.
+It includes one example skill and needs no database.
+
+## Try the example locally
+
+Clone the repository, or use **Code → Download ZIP** on GitHub and open the
+extracted folder. To start your own repository, choose **Use this template**
+on GitHub.
+
+```sh
+git clone https://github.com/pessini/skills-mcp.git
+cd skills-mcp
+```
+
+From the project folder, use Python 3.12 or later and uv to install the
+dependencies and start the server.
+
+```sh
+uv sync --locked
+uv run --locked python -m skills_mcp
+```
+
+The server listens on `127.0.0.1:8000` by default. In a second terminal, from
+the same folder, use the Python MCP client to read the example skill and its
+reference file.
+
+```sh
+uv run --locked python - <<'PY'
+import asyncio
+
+from fastmcp import Client
+
+
+async def main():
+    async with Client("http://127.0.0.1:8000/mcp") as client:
+        skill = await client.call_tool("load_skill", {"name": "example"})
+        print(skill.data)
+        reference = await client.call_tool(
+            "read_skill_file",
+            {"uri": "skill://example/references/handover.md"},
+        )
+        print(reference.data)
+
+
+asyncio.run(main())
+PY
+```
+
+The output includes **Draft a workspace handover** and **Sample handover**.
+You can also connect a local MCP client to `http://127.0.0.1:8000/mcp`.
+Leave the authorization header empty if you started the server without
+`MCP_BEARER_TOKEN`. Press Ctrl+C in the server terminal to stop it.
+
+Run the project's automated tests with `uv run --locked python -m pytest`.
 
 ## Add your skills
 
-Create a copy of this repository under your account. Put each skill in its own
-folder under `skills/`:
+Put each skill in its own folder under `skills/`.
 
 ```text
 skills/
@@ -23,11 +74,20 @@ Each `SKILL.md` starts with YAML front matter containing a unique `name` and a
 [example skill](skills/example/SKILL.md). You can remove it after adding your own
 skill. Keep at least one valid skill in the catalog.
 
-The Docker build copies `skills/` from your repository into the image. Rebuild
-and redeploy after changing the catalog. Keep credentials and private files you
-do not intend to serve outside `skills/`.
+The server publishes Markdown, plain text, YAML, and JSON files, plus files
+named `LICENSE` or `NOTICE`. Keep credentials and private files outside
+`skills/`. Restart the server after changing the catalog. Set `SKILLS_ROOT` if
+you want to load skills from a different folder.
 
-## Run a local test with Docker Compose
+## Deploy your own copy
+
+Use the host of your choice. For access over the network, configure HTTPS,
+set `MCP_BEARER_TOKEN` to a secret, and set `MCP_ALLOWED_HOSTS` to your
+hostname before exposing the service. The Dockerfile builds a container from
+your copy of the repository, including its `skills/` folder. Rebuild that
+image after changing your catalog.
+
+### Try the container with Docker Compose
 
 From the repository root, create a private `.env` file with a new token:
 
@@ -40,7 +100,7 @@ The command preserves an existing `.env`. Compose reads the token from that
 file and binds the service to `127.0.0.1:8000`. Connect a client on the same
 machine to `http://127.0.0.1:8000/mcp`. Keep `.env` out of version control.
 
-## Deploy to Dokploy
+### Deploy to Dokploy
 
 Create a Dokploy **Application** from your Git repository. Choose
 **Dockerfile** as the build type. Use `/` for the Git build path, `Dockerfile`
@@ -119,15 +179,6 @@ the example catalog, load `example` and ask it to read
 `skill://example/references/handover.md` with `read_skill_file`. This confirms
 that the client can retrieve both the skill and a supporting file.
 
-## Develop the server
+## License
 
-Install Python 3.12 or later and uv, then run:
-
-```sh
-uv sync --locked
-uv run --locked python -m skills_mcp
-```
-
-With uv, the server defaults to `127.0.0.1:8000` and uses the repository's
-`skills/` directory. Set `SKILLS_ROOT` to use a catalog at another path. To test authentication outside Docker, set
-`MCP_BEARER_TOKEN` before starting the server.
+[MIT](LICENSE)
