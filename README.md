@@ -100,31 +100,6 @@ The command preserves an existing `.env`. Compose reads the token from that
 file and binds the service to `127.0.0.1:8000`. Connect a client on the same
 machine to `http://127.0.0.1:8000/mcp`. Keep `.env` out of version control.
 
-### Deploy to Dokploy
-
-Create a Dokploy **Application** from your Git repository. Choose
-**Dockerfile** as the build type. Use `/` for the Git build path, `Dockerfile`
-for the Dockerfile path, and `.` for the Docker context. Leave the build stage
-empty.
-
-In the application **Environment** tab, set these runtime variables:
-
-| Variable | Value |
-| --- | --- |
-| `MCP_BEARER_TOKEN` | A secret generated with `openssl rand -hex 32` |
-| `MCP_ALLOWED_HOSTS` | Your MCP hostname, for example `skills.example.com` |
-
-Point your DNS record to the server and add the hostname under **Domains**.
-Set the route path to `/`, leave the internal path empty, turn off **Strip
-Path**, and set the container port to `8000`. Enable HTTPS and deploy. The
-configured hostname must match the hostname in the client URL. For another
-container host, build the same Dockerfile at the repository root and forward
-HTTPS to container port `8000`.
-
-[Dokploy build settings](https://docs.dokploy.com/docs/core/applications/build-type)
-and [domain settings](https://docs.dokploy.com/docs/core/domains) show where to
-enter these values.
-
 ## Connect a client
 
 Use your own URL and the same token you set on the server. Use HTTPS for
