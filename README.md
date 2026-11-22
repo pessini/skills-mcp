@@ -1,11 +1,17 @@
 # skills-mcp
 
-Use this template to run your own Python server for sharing skills with Codex,
-Claude Code, or another Model Context Protocol (MCP) client. The server reads
-skills from your copy of the repository and serves them over Streamable HTTP.
-It includes one example skill and needs no database.
+Run your own server to share reusable task instructions with Codex, Claude Code,
+and other tools that support the Model Context Protocol (MCP). Keep the
+instructions in one repository so each connected tool can read the same files.
+
+Each set of instructions is called a skill. A skill has a `SKILL.md` file and
+can include examples or reference files. The server supplies those files. The
+connected tool uses them to do the task. The server needs no database.
 
 ## Try the example locally
+
+The included skill explains how to draft a workspace handover and provides a
+sample note. In this test, a Python client reads both files from the server.
 
 Clone the repository, or use **Code → Download ZIP** on GitHub and open the
 extracted folder. To start your own repository, choose **Use this template**
@@ -24,9 +30,8 @@ uv sync --locked
 uv run --locked python -m skills_mcp
 ```
 
-The server listens on `127.0.0.1:8000` by default. In a second terminal, from
-the same folder, use the Python MCP client to read the example skill and its
-reference file.
+The server listens on `127.0.0.1:8000` by default. Open a second terminal in
+the same folder and run the test.
 
 ```sh
 uv run --locked python - <<'PY'
@@ -69,23 +74,25 @@ skills/
       guide.md
 ```
 
-Each `SKILL.md` starts with YAML front matter containing a unique `name` and a
-`description` that tells the client when to use it. Start with the
+Between the `---` lines at the top of each `SKILL.md`, set a unique `name` and
+write a `description` that tells the client when to use the skill. Start with the
 [example skill](skills/example/SKILL.md). You can remove it after adding your own
-skill. Keep at least one valid skill in the catalog.
+skill. Keep at least one valid skill in `skills/`.
 
 The server publishes Markdown, plain text, YAML, and JSON files, plus files
 named `LICENSE` or `NOTICE`. Keep credentials and private files outside
-`skills/`. Restart the server after changing the catalog. Set `SKILLS_ROOT` if
-you want to load skills from a different folder.
+`skills/`.
+
+The server reads the skill files at startup. Restart it to make edits available.
+Set `SKILLS_ROOT` to load skills from a different folder.
 
 ## Deploy your own copy
 
 Use the host of your choice. For access over the network, configure HTTPS,
 set `MCP_BEARER_TOKEN` to a secret, and set `MCP_ALLOWED_HOSTS` to your
 hostname before exposing the service. The Dockerfile builds a container from
-your copy of the repository, including its `skills/` folder. Rebuild that
-image after changing your catalog.
+your copy of the repository, including its `skills/` folder. After you edit
+the skill files, rebuild the image and start a new container from it.
 
 ### Try the container with Docker Compose
 
@@ -102,8 +109,9 @@ machine to `http://127.0.0.1:8000/mcp`. Keep `.env` out of version control.
 
 ## Connect a client
 
-Use your own URL and the same token you set on the server. Use HTTPS for
-connections over the network.
+Choose Streamable HTTP as the connection type. Use your own `/mcp` URL and
+the same token you set on the server. Use HTTPS for connections over the
+network.
 
 ### Codex desktop
 
